@@ -1,13 +1,50 @@
 #include<iostream>
 #include<string.h>
-#include<conio.h>
 #include<fstream>
+#include<cstdio>
+#ifdef _WIN32
+#include<conio.h>
+#else
+#include<termios.h>
+#include<unistd.h>
+#endif
 using namespace std;
 int i,n;
 ifstream fin;
 ofstream fout;
 fstream fio;
 void disp();
+
+// The original code used conio.h's get_key() and clear_screen(), which only
+// exist on Windows. These small wrappers keep the same behaviour on
+// Windows and make the program build and run on Linux/macOS too.
+int get_key()
+{
+#ifdef _WIN32
+    return get_key();
+#else
+    if (!isatty(STDIN_FILENO))
+        return getchar(); // input is piped: no terminal settings to change
+    struct termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    int ch = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    return ch;
+#endif
+}
+
+void clear_screen()
+{
+#ifdef _WIN32
+    clear_screen();
+#else
+    if (isatty(STDOUT_FILENO))
+        system("clear");
+#endif
+}
 class stock
 {
 		char name[20];
@@ -30,13 +67,13 @@ void stock::withd(int qty)
     }
 	else 
 	   cout<<"\n\nInsufficient stock";
-	    getch();	
+	    get_key();	
 }
 void stock::refil(int qty)
 {
 		quant+=qty;
 		cout<<"\n\nStock updated.";
-	    getch();	
+	    get_key();	
 }
 int stock::stockcheck(char nm[30])
 {
@@ -57,11 +94,11 @@ void stock::show()
 }
 void addnew()
 {
-    system("cls");
+    clear_screen();
 		
 	disp();
-	getch();
-	system("cls");
+	get_key();
+	clear_screen();
 	
 	cout<<"\nEnter the No. of Products that you wish to add: ";
     cin>>n;
@@ -80,7 +117,7 @@ void addnew()
     cout<<"\n\nStock Updated!!";
     fout.close();
     cin.get();
-    system("cls");
+    clear_screen();
     disp();
 }
 	else
@@ -88,13 +125,13 @@ void addnew()
 
 	fout.close();
 	cin.get();
-	system("cls");
+	clear_screen();
 	cout<<"\n\nNo items to be added";
 }
 }
 void withdraw()
 {
-	system("cls");
+	clear_screen();
 	char temp[100];int qty;
 	int i=0;
 	long pos=0;
@@ -121,12 +158,12 @@ void withdraw()
     
      if(i!=1)
        cout<<"\n\n!!Item not found!!";
-       getch();
+       get_key();
      fio.close();
     cin.get();
-    system("cls");
+    clear_screen();
 	 disp(); 
-	getch();
+	get_key();
 }
 void disp()
 {
@@ -149,14 +186,14 @@ void disp()
      }
      if(i==0)
      {	cout<<"\n\n\t\t\t!!Empty record room!!";
-	getch();
+	get_key();
      }
      fin.close();
     
 }
 void refill()
 {
-	system("cls");
+	clear_screen();
 	char temp[100];int qty;
 	int i=0;
 	long pos=0;
@@ -181,13 +218,13 @@ void refill()
      if(i!=1)
        cout<<"\n\n!!Record not found!!";
      fio.close();
-    system("cls");
+    clear_screen();
     cin.get();
 	 disp(); cin.get();	
 }
 void remove()
 {
-	system("cls");	
+	clear_screen();	
 	 int i=0;
      char temp[30];
      cout<<"\n\t\t\t\tDelete Record";
@@ -212,7 +249,7 @@ void remove()
        cout<<"\n\n!!Record not found!!";
      fin.close();
      fout.close();
-     remove("shop.dat");
+     ::remove("shop.dat");
      rename("temp.dat","shop.dat");
 }
 int main()
@@ -225,26 +262,28 @@ int main()
 	cout<<"\n\n==========================================================\n";
 	cout<<"\n\nEnter Your Choice:";
 	cin>>j;
+	cin.ignore(1000, '\n'); // drop the leftover newline so it is not read as the first password character
 	if(j==1)
 	{
-	system("cls");
-    cout<<"\n\n\nt\t\tPlease enter the password: ";
+	clear_screen();
+    cout<<"\n\n\n\t\tPlease enter the password: ";
 	
 	for(int z=0;z<3;z++)
 	{
-		pass[z]=getch();
-		system("cls");
+		pass[z]=get_key();
+		clear_screen();
 		cout<<"\n\n\n\n\n\n\n\t\t\t\t\tPlease enter the password: ";
 		for(i=1;i<=(z+1);i++)
 		{
 			cout<<"*";
 		}
 	}
+	pass[3]='\0'; // terminate the buffer before comparing
 	if(strcmp(pass,"abc")==0)
 	{
-    system("cls");
+    clear_screen();
 	empmenu:
-	system("cls");
+	clear_screen();
 	cout<<"=================================================================";
 	cout<<"\n\n\t\t\t    EMPLOYEE MENU\n1. Add new product\n2. Display stock\n3. Refill\n4. Remove an item\n5. Exit:";
 	cout<<"\n\n\n==========================END OF MENU=============================";
@@ -252,14 +291,14 @@ int main()
 	cin>>i;
 	if(i==1)
 	{
-		addnew();getch();
+		addnew();get_key();
 	goto empmenu;
 	}
 
 	else if(i==2)
 	{
-		system("cls");
-	disp();getch();goto empmenu;
+		clear_screen();
+	disp();get_key();goto empmenu;
 	}
 	else if(i==3)
 	{
@@ -267,19 +306,19 @@ int main()
 	}
 	else if(i==4)
 	{
-		remove();getch();goto empmenu;
+		remove();get_key();goto empmenu;
 	}
 	else 
 	{
-		system("cls");
-	getch();
+		clear_screen();
+	get_key();
 	exit(0);
 }
 }
 else
 {
 	cout<<"\n\n\nINPUT CORRECT PASSWORD!!!\n\n";
-	getch();
+	get_key();
 
 	exit(0);
 }
@@ -287,7 +326,7 @@ else
 	if(j==2)
 	{
 		custmenu:
-	system("cls");
+	clear_screen();
 	cout<<"=================================================================";
 	cout<<"\n\n\t\t\t CUSTOMER MENU\n1. Purchase\n2. Display stock\n3. Exit:";
 	cout<<"\n\n\n==========================END OF MENU=============================";
@@ -295,19 +334,19 @@ else
 	cin>>i;	
 	if (i==1)
 	{
-	withdraw();getch();goto custmenu;
+	withdraw();get_key();goto custmenu;
 	}
 	else if(i==2)
 	{
-		system("cls");
-	disp();getch();goto custmenu;
+		clear_screen();
+	disp();get_key();goto custmenu;
 	}	
 	else 
 	{
-		system("cls");
-	getch();
+		clear_screen();
+	get_key();
 	exit(0);
 }	
 }
-	getch();
+	get_key();
 }
