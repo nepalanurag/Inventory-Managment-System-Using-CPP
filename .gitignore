@@ -1,0 +1,7 @@
+# data files created at runtime
+shop.dat
+temp.dat
+# compiled binary
+inventory
+inventory.exe
+*.o
