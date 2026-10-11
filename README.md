@@ -1,6 +1,6 @@
 # Inventory Management System
 
-A console-based inventory management system written in C++.
+A console-based inventory management system written in C++. I wrote it as coursework for my computer engineering degree.
 
 It handles adding, updating, searching, and deleting inventory items. Records are stored in a binary file (`shop.dat`), and there are two menus: an employee menu (password protected, password is `abc`) for managing stock, and a customer menu for purchases.
 
